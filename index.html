@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Para Ti ❤️</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  background: #ffc0cb;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  min-height: 100vh;
+  justify-content: center;
+}
+
+#game {
+  width: 400px;
+  height: 600px;
+  background: #ff99cc;
+  border: 5px solid #ff66b2;
+  box-shadow: 0 0 20px #ff66b2;
+  position: relative;
+  overflow: hidden;
+}
+
+.pixel {
+  image-rendering: pixelated;
+}
+
+#character {
+  width: 48px;
+  height: 48px;
+  position: absolute;
+  bottom: 20px;
+  left: 180px;
+  background: url('jenni_peluche.png') no-repeat center;
+  background-size: contain;
+  image-rendering: pixelated;
+}
+
+#spawner {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 10px;
+  left: 170px;
+  background: url('yo_merengues.png') no-repeat center;
+  background-size: contain;
+  image-rendering: pixelated;
+}
+
+.heart {
+  width: 20px;
+  height: 20px;
+  background: #ff3366;
+  position: absolute;
+}
+
+.heart::before,
+.heart::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background: #ff3366;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.heart::before {
+  top: -10px;
+  left: 0;
+}
+
+.heart::after {
+  left: 10px;
+  top: 0;
+}
+
+.flower {
+  position: absolute;
+  font-size: 30px;
+}
+
+.frappe {
+  position: absolute;
+  font-size: 30px;
+}
+
+#textBox {
+  width: 400px;
+  min-height: 140px;
+
+  background: rgba(255,255,255,0.9);
+
+  font-size: 14px;
+  text-align: center;
+
+  border: 5px solid #ff66b2;
+}
+
+#container {
+  position: relative;
+  width: 400px;
+}
+
+#buttons {
+  margin-top: 20px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: none;
+  background: #ff66b2;
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="container">
+
+  <div id="game">
+    <div id="spawner"></div>
+    <div id="character"></div>
+  </div>
+
+  <div id="textBox">
+    <div id="text">Recoge los corazones ❤️</div>
+  </div>
+
+</div>
+
+<script>
+const character = document.getElementById("character");
+const game = document.getElementById("game");
+const text = document.getElementById("text");
+
+let score = 0;
+let lastType = null
+let yesScale = 1;
+let noScale = 1;
+
+let spawnerDirection = 1;
+let spawnerSpeed = 2;
+let messages = [
+  "Eres lo mejor que me ha pasado ❤️",
+  "Cada momento contigo es especial ✨",
+  "Me haces muy feliz 🐥",
+  "Quiero seguir contigo mucho tiempo 💖",
+  "¿Quieres ser mi novia?"
+];
+
+// Movimiento
+window.addEventListener("keydown", (e) => {
+  let left = character.offsetLeft;
+  if (e.key === "ArrowLeft" && left > 0) {
+    character.style.left = left - 20 + "px";
+  }
+  if (e.key === "ArrowRight" && left < 360) {
+    character.style.left = left + 20 + "px";
+  }
+});
+
+// Crear corazones
+function createHeart() {
+  const item = document.createElement("div");
+
+  const spawner = document.getElementById("spawner");
+
+setTimeout(() => {
+  let left = spawner.offsetLeft + (spawner.offsetWidth / 2 - item.offsetWidth / 2);
+
+  // límites
+  if (left < 0) left = 0;
+  if (left > game.offsetWidth - item.offsetWidth) {
+    left = game.offsetWidth - item.offsetWidth;
+  }
+
+  item.style.left = left + "px";
+}, 0);
+  item.style.top = spawner.offsetTop + spawner.offsetHeight + 5 + "px";
+
+  game.appendChild(item);
+
+  // Tipos de objetos
+  const types = ["heart", "flower", "frappe"];
+
+  let randomType;
+  do {
+    randomType= types[Math.floor(Math.random() * types.length)];
+  } while (randomType === lastType);
+
+  lastType = randomType;
+
+  item.classList.add(randomType);
+
+  // Si es frappe usamos emoji directamente
+  if (randomType === "frappe") {
+    item.innerHTML = "🧋";
+  }
+
+  if (randomType === "flower") {
+  item.innerHTML = "🌻"; // girasol
+}
+
+  let offset = (Math.random() * 100) - 50; // -50 a +50
+
+  item.style.left = spawner.offsetLeft + (spawner.offsetWidth / 2 - 10 + offset) + "px";
+  game.appendChild(item);
+
+  let fall = setInterval(() => {
+    let top = item.offsetTop;
+    item.style.top = top + 5 + "px";
+
+    // Colisión
+    if (
+      top > 540 &&
+      item.offsetLeft < character.offsetLeft + character.offsetWidth &&
+      item.offsetLeft + item.offsetWidth > character.offsetLeft
+    ) {
+      score++;
+      item.remove();
+      clearInterval(fall);
+
+      if (score <= messages.length) {
+        text.innerHTML = messages[score - 1];
+      }
+
+      if (score === messages.length) {
+        setTimeout(() => {
+          text.innerHTML += `
+            <div id="buttons">
+              <button id='yesButton' onclick='yes()'>Sí 💖</button>
+              <button id='noButton' onclick='moveNoButton()'>No 😢</button>
+            </div>
+          `;
+        }, 500);
+      }
+    }
+
+    if (top > 600) {
+      item.remove();
+      clearInterval(fall);
+    }
+  }, 50);
+}
+
+const noMessages = [
+  "¿Segura? 😭",
+  "Piénsalo otra vez 💔",
+  "El destino dice que sí 👀",
+  "Ese botón ya está sufriendo 😢",
+  "No acepto esa respuesta 😏",
+  "Vamos… sabes que quieres decir que sí 💖",
+  "El botón 'Sí' se está emocionando ✨",
+  "Ya casi desaparece el 'No' 😂"
+];
+
+let messageIndex = 0;
+
+function moveNoButton() {
+  const noButton = document.getElementById("noButton");
+  const yesButton = document.getElementById("yesButton");
+  const text = document.getElementById("text");
+
+  // actualizar mensaje
+  text.innerHTML = `
+  ${noMessages[messageIndex]}
+  <div id="buttons">
+    <button id='yesButton' onclick='yes()'>Sí 💖</button>
+    <button id='noButton' onclick='moveNoButton()'>No 😢</button>
+  </div>
+  `;
+
+  messageIndex++;
+
+  if (messageIndex >= noMessages.length) {
+    messageIndex = 0;
+  }
+
+  // volver a obtener botones porque se recrearon
+  const newNoButton = document.getElementById("noButton");
+  const newYesButton = document.getElementById("yesButton");
+
+  // mover botón NO
+  const game = document.getElementById("game");
+
+  let maxX = game.offsetWidth - newNoButton.offsetWidth;
+  let maxY = game.offsetHeight - newNoButton.offsetHeight;
+
+  let randomX = Math.random() * maxX;
+  let randomY = Math.random() * maxY;
+
+  newNoButton.style.position = "absolute";
+  newNoButton.style.left = randomX + "px";
+  newNoButton.style.top = randomY + "px";
+
+  // agrandar botón SI
+  yesScale += 0.2;
+  newYesButton.style.transform = `scale(${yesScale})`;
+
+  // achicar botón NO
+  noScale -= 0.1;
+
+  if (noScale <= 0) {
+    newNoButton.style.display = "none";
+  } else {
+    newNoButton.style.transform = `scale(${noScale})`;
+  }
+}
+
+function moveSpawner() {
+  const spawner = document.getElementById("spawner");
+  const game = document.getElementById("game");
+
+  let left = spawner.offsetLeft + spawnerSpeed * spawnerDirection;
+
+  // límites
+  if (left <= 0) {
+    left = 0;
+    spawnerDirection = 1;
+  }
+
+  if (left >= game.offsetWidth - spawner.offsetWidth) {
+    left = game.offsetWidth - spawner.offsetWidth;
+    spawnerDirection = -1;
+  }
+
+    spawner.style.left = left + "px";
+}
+
+setInterval(createHeart, 1500);
+setInterval(moveSpawner, 20);
+
+function yes() {
+  text.innerHTML = "Sabía que dirías que sí ❤️ Te amo mucho 💕";
+}
+
+</script>
+
+</body>
+</html>
