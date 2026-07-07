@@ -167,6 +167,34 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+// Movimiento Táctil / Mouse (Celulares y Tablets)
+// Hace que el personaje siga la posición horizontal del dedo o del cursor dentro del juego
+const moveCharacterAt = (clientX) => {
+  const gameRect = game.getBoundingClientRect();
+  // Calcula la posición relativa dentro del contenedor del juego
+  let relativeX = clientX - gameRect.left - (character.offsetWidth / 2);
+  
+  // Límites para que no se salga de la pantalla
+  if (relativeX < 0) relativeX = 0;
+  if (relativeX > game.offsetWidth - character.offsetWidth) {
+    relativeX = game.offsetWidth - character.offsetWidth;
+  }
+  
+  character.style.left = relativeX + "px";
+};
+
+// Evento para arrastrar con el dedo en celular
+game.addEventListener("touchmove", (e) => {
+  // Previene el scroll de la pantalla mientras juegas
+  e.preventDefault(); 
+  moveCharacterAt(e.touches[0].clientX);
+}, { passive: false });
+
+// Opcional: También permite moverlo con el mouse deslizándolo por el juego
+game.addEventListener("mousemove", (e) => {
+  moveCharacterAt(e.clientX);
+});
+  
 // Crear corazones
 function createHeart() {
   const item = document.createElement("div");
