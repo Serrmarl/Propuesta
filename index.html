@@ -9,11 +9,9 @@ body {
   margin: 0;
   font-family: 'Courier New', monospace;
   background: #ffc0cb;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   min-height: 100vh;
   justify-content: center;
 }
@@ -115,15 +113,15 @@ body {
   position: absolute;
   top: 15px;
   left: 15px;
-  background: rgba(255, 255, 255, 0.85); /* Fondo blanco semitransparente */
-  color: #ff3366;                         /* Texto color cereza */
+  background: rgba(255, 255, 255, 0.85);
+  color: #ff3366;
   padding: 5px 12px;
   font-family: 'Courier New', monospace;
   font-weight: bold;
   font-size: 14px;
-  border: 3px solid #ff66b2;              /* Borde rosa brillante */
-  border-radius: 20px;                    /* Bordes redondeados */
-  z-index: 10;                            /* Asegura que siempre se vea por encima de los objetos */
+  border: 3px solid #ff66b2;
+  border-radius: 20px;
+  z-index: 10;
 }
   
 #buttons {
@@ -148,11 +146,11 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #ffb3d1; /* Un tono rosa pastel cómodo */
+  background: #ffb3d1;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100; /* Asegura que tape todo al inicio */
+  z-index: 100;
   cursor: pointer;
   text-align: center;
 }
@@ -167,7 +165,6 @@ button {
   color: white;
   font-size: 14px;
   font-weight: bold;
-  /* Animación para que el texto parpadee */
   animation: blink 1.2s infinite; 
 }
 
@@ -183,11 +180,11 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #ff66b2; /* Rosa intenso de celebración */
+  background: #ff66b2;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 200;        /* Por encima de todo, incluso del contador */
+  z-index: 200;
   text-align: center;
   color: white;
   font-family: 'Courier New', monospace;
@@ -227,6 +224,19 @@ button {
   from { transform: translateY(0); }
   to { transform: translateY(-10px); }
 }
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+.shake-animation {
+  animation: shake 0.3s ease-in-out;
+  border-color: #ff3366 !important;
+}
   
 </style>
 </head>
@@ -236,20 +246,20 @@ button {
 
   <div id="game">
     <div id="startScreen" onclick="startGame()">
-    <div class="start-content">
-      <h2>Un juego para ti ❤️</h2>
-      <p>Toca la pantalla para empezar</p>
+      <div class="start-content">
+        <h2>Un juego para ti ❤️</h2>
+        <p>Toca la pantalla para empezar</p>
+      </div>
     </div>
-  </div>
 
-  <div id="winScreen" style="display: none;">
-    <div class="win-content">
-      <h1>¡SÍ! 🎉</h1>
-      <p>Sabía que dirías que sí ❤️</p>
-      <p class="subtext">Te amo muchísimo 💕</p>
-      <div class="heart-icon">👑🌸🐥</div>
+    <div id="winScreen" style="display: none;">
+      <div class="win-content">
+        <h1>¡SÍ! 🎉</h1>
+        <p>Sabía que dirías que sí ❤️</p>
+        <p class="subtext">Te amo muchísimo 💕</p>
+        <div class="heart-icon">👑🌸🐥</div>
+      </div>
     </div>
-  </div>
     
     <div id="scoreBoard">Puntos: <span id="scoreNumber">0</span></div>
     <div id="spawner"></div>
@@ -269,12 +279,14 @@ const text = document.getElementById("text");
 const scoreNumber = document.getElementById("scoreNumber");
 
 let score = 0;
-let lastType = null
+let lastType = null;
 let yesScale = 1;
 let noScale = 1;
 
 let spawnerDirection = 1;
 let spawnerSpeed = 2;
+let gameStarted = false; // Control de inicio global
+
 let messages = [
   "Eres lo mejor que me ha pasado ❤️",
   "Cada momento contigo es especial ✨",
@@ -283,26 +295,24 @@ let messages = [
   "¿Quieres ser mi novia?"
 ];
 
-// Movimiento
+// Movimiento Teclado
 window.addEventListener("keydown", (e) => {
+  if (!gameStarted) return; // No mover si no ha iniciado
   let left = character.offsetLeft;
   if (e.key === "ArrowLeft" && left > 0) {
     character.style.left = left - 20 + "px";
   }
-  // Cambia el 360 fijo por el ancho dinámico del juego menos el personaje
   if (e.key === "ArrowRight" && left < (game.offsetWidth - character.offsetWidth)) {
     character.style.left = left + 20 + "px";
   }
 });
 
-// Movimiento Táctil / Mouse (Celulares y Tablets)
-// Hace que el personaje siga la posición horizontal del dedo o del cursor dentro del juego
+// Función de Movimiento Táctil / Mouse
 const moveCharacterAt = (clientX) => {
+  if (!gameStarted) return; // Clave: No mover si la pantalla de inicio sigue activa
   const gameRect = game.getBoundingClientRect();
-  // Calcula la posición relativa dentro del contenedor del juego
   let relativeX = clientX - gameRect.left - (character.offsetWidth / 2);
   
-  // Límites para que no se salga de la pantalla
   if (relativeX < 0) relativeX = 0;
   if (relativeX > game.offsetWidth - character.offsetWidth) {
     relativeX = game.offsetWidth - character.offsetWidth;
@@ -311,60 +321,51 @@ const moveCharacterAt = (clientX) => {
   character.style.left = relativeX + "px";
 };
 
-// Evento para arrastrar con el dedo en celular
+// Eventos de movimiento
 game.addEventListener("touchmove", (e) => {
-  // Previene el scroll de la pantalla mientras juegas
+  if (!gameStarted) return;
   e.preventDefault(); 
   moveCharacterAt(e.touches[0].clientX);
 }, { passive: false });
 
-// Opcional: También permite moverlo con el mouse deslizándolo por el juego
 game.addEventListener("mousemove", (e) => {
+  if (!gameStarted) return;
   moveCharacterAt(e.clientX);
 });
   
 // Crear corazones
 function createHeart() {
   const item = document.createElement("div");
-
   const spawner = document.getElementById("spawner");
 
-setTimeout(() => {
-  let left = spawner.offsetLeft + (spawner.offsetWidth / 2 - item.offsetWidth / 2);
-
-  // límites
-  if (left < 0) left = 0;
-  if (left > game.offsetWidth - item.offsetWidth) {
-    left = game.offsetWidth - item.offsetWidth;
-  }
-
-  item.style.left = left + "px";
-}, 0);
+  setTimeout(() => {
+    let left = spawner.offsetLeft + (spawner.offsetWidth / 2 - item.offsetWidth / 2);
+    if (left < 0) left = 0;
+    if (left > game.offsetWidth - item.offsetWidth) {
+      left = game.offsetWidth - item.offsetWidth;
+    }
+    item.style.left = left + "px";
+  }, 0);
+  
   item.style.top = spawner.offsetTop + spawner.offsetHeight + 5 + "px";
 
-  // Tipos de objetos
   const types = ["heart", "flower", "frappe"];
-
   let randomType;
   do {
-    randomType= types[Math.floor(Math.random() * types.length)];
+    randomType = types[Math.floor(Math.random() * types.length)];
   } while (randomType === lastType);
 
   lastType = randomType;
-
   item.classList.add(randomType);
 
-  // Si es frappe usamos emoji directamente
   if (randomType === "frappe") {
     item.innerHTML = "🧋";
   }
-
   if (randomType === "flower") {
-  item.innerHTML = "🌻"; // girasol
-}
+    item.innerHTML = "🌻";
+  }
 
-  let offset = (Math.random() * 100) - 50; // -50 a +50
-
+  let offset = (Math.random() * 100) - 50;
   item.style.left = spawner.offsetLeft + (spawner.offsetWidth / 2 - 10 + offset) + "px";
   game.appendChild(item);
 
@@ -399,22 +400,22 @@ setTimeout(() => {
       }
     }
 
-    if (top > 600) {
-      // Solo aplicamos penalización si el juego ya empezó y aún no ha llegado al final
+    // Caída al suelo (Penalización)
+    if (top > game.offsetHeight) {
       if (score < messages.length) {
-        // Restamos un punto si el score es mayor a 0 (para no tener puntos negativos)
         if (score > 0) {
           score--;
-          scoreNumber.innerText = score; // Actualiza el marcador en pantalla
+          scoreNumber.innerText = score;
+          
+          const scoreBoard = document.getElementById("scoreBoard");
+          scoreBoard.classList.add("shake-animation");
+          setTimeout(() => scoreBoard.classList.remove("shake-animation"), 300);
         }
         
-        // Mostramos un mensaje de advertencia divertido en la caja de texto
         text.innerHTML = "<span style='color: #ff3366; font-weight: bold;'>¡No los dejes caer! 😭 Atrapa otro</span>";
         
-        // Al cabo de 1.5 segundos, si no ha atrapado otro objeto, regresamos al mensaje que le correspondía
         let currentScore = score;
         setTimeout(() => {
-          // Validamos que siga en el mismo puntaje para no pisar un mensaje nuevo si ya atrapó otro
           if (score === currentScore && score < messages.length) {
             text.innerHTML = score > 0 ? messages[score - 1] : "Recoge los corazones ❤️";
           }
@@ -445,7 +446,6 @@ function moveNoButton() {
   const yesButton = document.getElementById("yesButton");
   const text = document.getElementById("text");
 
-  // actualizar mensaje
   text.innerHTML = `
   ${noMessages[messageIndex]}
   <div id="buttons">
@@ -455,16 +455,12 @@ function moveNoButton() {
   `;
 
   messageIndex++;
-
   if (messageIndex >= noMessages.length) {
     messageIndex = 0;
   }
 
-  // volver a obtener botones porque se recrearon
   const newNoButton = document.getElementById("noButton");
   const newYesButton = document.getElementById("yesButton");
-
-  // mover botón NO
   const game = document.getElementById("game");
 
   let maxX = game.offsetWidth - newNoButton.offsetWidth;
@@ -477,13 +473,10 @@ function moveNoButton() {
   newNoButton.style.left = randomX + "px";
   newNoButton.style.top = randomY + "px";
 
-  // agrandar botón SI
   yesScale += 0.2;
   newYesButton.style.transform = `scale(${yesScale})`;
 
-  // achicar botón NO
   noScale -= 0.1;
-
   if (noScale <= 0) {
     newNoButton.style.display = "none";
   } else {
@@ -497,54 +490,43 @@ function moveSpawner() {
 
   let left = spawner.offsetLeft + spawnerSpeed * spawnerDirection;
 
-  // límites
   if (left <= 0) {
     left = 0;
     spawnerDirection = 1;
   }
-
   if (left >= game.offsetWidth - spawner.offsetWidth) {
     left = game.offsetWidth - spawner.offsetWidth;
     spawnerDirection = -1;
   }
 
-    spawner.style.left = left + "px";
+  spawner.style.left = left + "px";
 }
 
-let gameStarted = false;
-
+// Función de inicio corregida
 function startGame() {
-  if (gameStarted) return; // Evita que se active doble si tocan dos veces
+  if (gameStarted) return; 
   gameStarted = true;
 
-  // Oculta la pantalla de inicio con una transición o directo
   document.getElementById("startScreen").style.display = "none";
 
-  // ¡Ahora sí inician los bucles del juego!
   setInterval(createHeart, 1500);
   setInterval(moveSpawner, 20);
 }
 
 function yes() {
-  // 1. Cambia el texto de la caja inferior como respaldo
   text.innerHTML = "Sabía que dirías que sí ❤️ Te amo mucho 💕";
 
-  // 2. Muestra la pantalla de fin de juego (victoria)
   const winScreen = document.getElementById("winScreen");
   winScreen.style.display = "flex";
 
-  // 3. Detiene por completo la generación de nuevos corazones/objetos
-  // Para lograrlo, limpiaremos todos los intervalos activos en el navegador
-  let id = window.setInterval(function {}, 0);
+  let id = window.setInterval(function() {}, 0);
   while (id--) {
     window.clearInterval(id);
   }
 
-  // 4. Limpia los corazones que hayan quedado flotando a medias en la pantalla
   const activeItems = game.querySelectorAll(".heart, .flower, .frappe");
   activeItems.forEach(item => item.remove());
 }
-
 </script>
 
 </body>
