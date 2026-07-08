@@ -176,6 +176,57 @@ button {
   50% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+#winScreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ff66b2; /* Rosa intenso de celebración */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;        /* Por encima de todo, incluso del contador */
+  text-align: center;
+  color: white;
+  font-family: 'Courier New', monospace;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.win-content h1 {
+  font-size: 40px;
+  margin: 0 0 10px 0;
+  text-shadow: 2px 2px #ff3366;
+  animation: bounce 0.6s infinite alternate;
+}
+
+.win-content p {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.win-content .subtext {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.win-content .heart-icon {
+  font-size: 30px;
+  margin-top: 20px;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
+}
   
 </style>
 </head>
@@ -188,6 +239,15 @@ button {
     <div class="start-content">
       <h2>Un juego para ti ❤️</h2>
       <p>Toca la pantalla para empezar</p>
+    </div>
+  </div>
+
+  <div id="winScreen" style="display: none;">
+    <div class="win-content">
+      <h1>¡SÍ! 🎉</h1>
+      <p>Sabía que dirías que sí ❤️</p>
+      <p class="subtext">Te amo muchísimo 💕</p>
+      <div class="heart-icon">👑🌸🐥</div>
     </div>
   </div>
     
@@ -340,6 +400,27 @@ setTimeout(() => {
     }
 
     if (top > 600) {
+      // Solo aplicamos penalización si el juego ya empezó y aún no ha llegado al final
+      if (score < messages.length) {
+        // Restamos un punto si el score es mayor a 0 (para no tener puntos negativos)
+        if (score > 0) {
+          score--;
+          scoreNumber.innerText = score; // Actualiza el marcador en pantalla
+        }
+        
+        // Mostramos un mensaje de advertencia divertido en la caja de texto
+        text.innerHTML = "<span style='color: #ff3366; font-weight: bold;'>¡No los dejes caer! 😭 Atrapa otro</span>";
+        
+        // Al cabo de 1.5 segundos, si no ha atrapado otro objeto, regresamos al mensaje que le correspondía
+        let currentScore = score;
+        setTimeout(() => {
+          // Validamos que siga en el mismo puntaje para no pisar un mensaje nuevo si ya atrapó otro
+          if (score === currentScore && score < messages.length) {
+            text.innerHTML = score > 0 ? messages[score - 1] : "Recoge los corazones ❤️";
+          }
+        }, 1500);
+      }
+
       item.remove();
       clearInterval(fall);
     }
@@ -445,7 +526,23 @@ function startGame() {
 }
 
 function yes() {
+  // 1. Cambia el texto de la caja inferior como respaldo
   text.innerHTML = "Sabía que dirías que sí ❤️ Te amo mucho 💕";
+
+  // 2. Muestra la pantalla de fin de juego (victoria)
+  const winScreen = document.getElementById("winScreen");
+  winScreen.style.display = "flex";
+
+  // 3. Detiene por completo la generación de nuevos corazones/objetos
+  // Para lograrlo, limpiaremos todos los intervalos activos en el navegador
+  let id = window.setInterval(function {}, 0);
+  while (id--) {
+    window.clearInterval(id);
+  }
+
+  // 4. Limpia los corazones que hayan quedado flotando a medias en la pantalla
+  const activeItems = game.querySelectorAll(".heart, .flower, .frappe");
+  activeItems.forEach(item => item.remove());
 }
 
 </script>
