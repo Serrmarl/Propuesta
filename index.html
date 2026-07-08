@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Para Ti ❤️</title>
 <style>
 body {
@@ -18,13 +19,15 @@ body {
 }
 
 #game {
-  width: 400px;
-  height: 600px;
+  width: 100%;
+  height: 70vh;
+  max-height: 550px;
   background: #ff99cc;
   border: 5px solid #ff66b2;
   box-shadow: 0 0 20px #ff66b2;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .pixel {
@@ -91,20 +94,21 @@ body {
 }
 
 #textBox {
-  width: 400px;
-  min-height: 140px;
-
+  width: 100%;
+  min-height: 120px;
   background: rgba(255,255,255,0.9);
-
   font-size: 14px;
   text-align: center;
-
   border: 5px solid #ff66b2;
+  box-sizing: border-box;
+  margin-top: 10px;
 }
 
 #container {
   position: relative;
-  width: 400px;
+  width: 90vw;
+  max-width: 400px;
+  box-sizing: border-box;
 }
 
 #buttons {
@@ -162,7 +166,8 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft" && left > 0) {
     character.style.left = left - 20 + "px";
   }
-  if (e.key === "ArrowRight" && left < 360) {
+  // Cambia el 360 fijo por el ancho dinámico del juego menos el personaje
+  if (e.key === "ArrowRight" && left < (game.offsetWidth - character.offsetWidth)) {
     character.style.left = left + 20 + "px";
   }
 });
@@ -248,7 +253,7 @@ setTimeout(() => {
 
     // Colisión
     if (
-      top > 540 &&
+      top > (game.offsetHeight - character.offsetHeight - 40) &&
       item.offsetLeft < character.offsetLeft + character.offsetWidth &&
       item.offsetLeft + item.offsetWidth > character.offsetLeft
     ) {
